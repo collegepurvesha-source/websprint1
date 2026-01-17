@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Campus Event Map Debug</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* CSS STYLES */
+        body { margin: 0; background: #050a14; font-family: sans-serif; overflow: hidden; }
+        
+        .ui-container { display: flex; height: 100vh; width: 100vw; }
+
+        /* Side Panel */
+        .side-panel {
+            width: 300px;
+            background: rgba(16, 33, 60, 0.9);
+            border-right: 2px solid #00f3ff;
+            padding: 20px;
+            color: white;
+            z-index: 1000;
+        }
+
+        /* Map Area - MUST HAVE HEIGHT */
+        #map { 
+            flex-grow: 1; 
+            height: 100%; 
+            background: #020205; 
+        }
+
+        .event-card {
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ui-container">
+        <aside class="side-panel">
+            <h2>EVENT NAV</h2>
+            <div id="events-feed"></div>
+        </aside>
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // JAVASCRIPT LOGIC
+
+        // 1. Initialize Map
+        // 'crs: L.CRS.Simple' is REQUIRED for flat images (not earth maps)
+        const map = L.map('map', {
+            crs: L.CRS.Simple, 
+            minZoom: -2,
+            maxZoom: 2,
+            zoomControl: true
+        });
+
+        // 2. Define the image bounds (The "Coordinate System")
+        // This maps the image to a 1000x1000 grid.
+        // [0,0] is bottom-left. [1000,1000] is top-right.
+        const bounds = [[0,0], [1000,1000]]; 
+
+        // 3. Load the Image
+        // !!! IMPORTANT: Ensure this filename matches exactly !!!
+        const image = L.imageOverlay('image_ac1fa0.jpg', bounds).addTo(map);
+
+        // Center the view
+        map.fitBounds(bounds);
+
+        // 4. Data
+        const campusEvents = [
+          {
+            id: 1,
+            college: "Usha Mittal Institute",
+            xy: [600, 350], // Coordinates on the 1000x1000 grid
+            color: "#00f3ff",
+            events: [{ title: "TechX Hackathon", date: "2025-10-27" }]
+          },
+          {
+            id: 2,
+            college: "SNDT Law School",
+            xy: [700, 200],
+            color: "#ff00ff", 
+            events: [] // No events
+          },
+          {
+            id: 3,
+            college: "C U Shah Pharmacy",
+            xy: [750, 750], 
+            color: "#00ff9d", 
+            events: [{ title: "Pharma Expo", date: "2025-10-27" }]
+          }
+        ];
+
+        // 5. Render
+        const eventFeed = document.getElementById('events-feed');
+
+        campusEvents.forEach(college => {
+            // Only show pin if events exist
+            if (college.events.length > 0) {
+                
+                // Add Marker
+                const marker = L.marker(college.xy).addTo(map);
+                
+                // Add Popup
+                marker.bindPopup(`<b>${college.college}</b><br>${college.events[0].title}`);
+
+                // Add to Sidebar
+                const card = document.createElement('div');
+                card.className = 'event-card';
+                card.style.borderLeft = `4px solid ${college.color}`;
+                card.innerHTML = `<strong>${college.events[0].title}</strong><br><small>${college.college}</small>`;
+                eventFeed.appendChild(card);
+            }
+        });
+
+        // DEBUG HELPER: Click anywhere on map to see coordinates
+        // This helps you find the right spots for the other colleges
+        map.on('click', function(e){
+            console.log("You clicked at:", e.latlng);
+            alert("Coordinates: " + e.latlng);
+        });
+
+    </script>
+</body>
+</html>
